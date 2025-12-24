@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "LotteryTracker.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "LotteryTracker.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

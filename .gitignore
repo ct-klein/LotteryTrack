@@ -1,0 +1,126 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Visual Studio cache/options
+*.VisualState.xml
+TestStore/
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# MSTest
+[Dd]ebugPublic/
+TestResults/
+[Tt]est[Rr]esults.xml
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Publish output
+[Pp]ublish/
+[Pp]ublished/
+
+# WinUI / Windows App SDK
+AppPackages/
+BundleArtifacts/
+*.appx
+*.appxbundle
+*.appxupload
+*.msix
+*.msixbundle
+*.msixupload
+
+# User-specific files
+*.userprefs
+mono_crash.*
+
+# Backup & merge files
+*.orig
+*.bak
+*.swp
+*~
+
+# dotnet tooling
+.dotnet/
+tools/
+
+# Coverage reports
+coverage/
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+
+# Local development settings
+appsettings.local.json
+appsettings.Development.json
+*.local.json
+secrets.json
+
+# SQLite databases (local dev)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# JetBrains Rider
+*.DotSettings.user
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# NCrunch
+_NCrunch_*
+.*crunch*.local.xml
+nCrunchTemp_*
+
+# MFractors
+.mfractor/
+
+# Crash logs
+crash_*.json
