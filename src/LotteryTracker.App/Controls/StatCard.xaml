@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="LotteryTracker.App.Controls.StatCard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Border
+        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+        BorderThickness="1"
+        CornerRadius="8"
+        Padding="16"
+        MinWidth="150">
+        <StackPanel Spacing="8">
+            <TextBlock
+                x:Name="TitleText"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <TextBlock
+                x:Name="ValueText"
+                Style="{StaticResource TitleTextBlockStyle}"
+                FontWeight="SemiBold"/>
+            <TextBlock
+                x:Name="SubtitleText"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                Visibility="Collapsed"/>
+        </StackPanel>
+    </Border>
+</UserControl>
