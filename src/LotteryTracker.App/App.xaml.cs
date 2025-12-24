@@ -1,51 +1,82 @@
-using Microsoft.UI.Xaml.Navigation;
+namespace LotteryTracker.App;
 
-namespace LotteryTracker.App
+using LotteryTracker.App.Services;
+using LotteryTracker.App.ViewModels;
+using LotteryTracker.App.Views;
+using LotteryTracker.Core.Interfaces;
+using LotteryTracker.Infrastructure.Data;
+using LotteryTracker.Infrastructure.Repositories;
+using LotteryTracker.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
+
+public partial class App : Application
 {
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
-    public partial class App : Application
+    private Window? _window;
+
+    public static IServiceProvider Services { get; private set; } = null!;
+    public static Window MainWindow { get; private set; } = null!;
+
+    public App()
     {
-        private Window window = Window.Current;
+        this.InitializeComponent();
+        Services = ConfigureServices();
+    }
 
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
-        public App()
-        {
-            this.InitializeComponent();
-        }
+    private static IServiceProvider ConfigureServices()
+    {
+        var services = new ServiceCollection();
 
-        /// <summary>
-        /// Invoked when the application is launched normally by the end user.  Other entry points
-        /// will be used such as when the application is launched to open a specific file.
-        /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
-        {
-            window ??= new Window();
+        // Database
+        var dbPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "LotteryTracker", "lottery.db");
+        Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
 
-            if (window.Content is not Frame rootFrame)
-            {
-                rootFrame = new Frame();
-                rootFrame.NavigationFailed += OnNavigationFailed;
-                window.Content = rootFrame;
-            }
+        services.AddDbContext<LotteryTrackerDbContext>(options =>
+            options.UseSqlite($"Data Source={dbPath}"));
 
-            _ = rootFrame.Navigate(typeof(MainPage), e.Arguments);
-            window.Activate();
-        }
+        // Repositories & Services
+        services.AddScoped<ITicketRepository, TicketRepository>();
+        services.AddScoped<IStatisticsService, StatisticsService>();
 
-        /// <summary>
-        /// Invoked when Navigation to a certain page fails
-        /// </summary>
-        /// <param name="sender">The Frame which failed navigation</param>
-        /// <param name="e">Details about the navigation failure</param>
-        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
-        {
-            throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
-        }
+        // Navigation Service
+        var navigationService = new NavigationService();
+        navigationService.RegisterPage("Dashboard", typeof(DashboardPage));
+        navigationService.RegisterPage("AddTicket", typeof(AddTicketPage));
+        navigationService.RegisterPage("TicketHistory", typeof(TicketHistoryPage));
+        navigationService.RegisterPage("TicketDetail", typeof(TicketDetailPage));
+        navigationService.RegisterPage("Statistics", typeof(StatisticsPage));
+        services.AddSingleton<INavigationService>(navigationService);
+
+        // ViewModels
+        services.AddTransient<ShellViewModel>();
+        services.AddTransient<DashboardViewModel>();
+        services.AddTransient<AddTicketViewModel>();
+        services.AddTransient<TicketHistoryViewModel>();
+        services.AddTransient<TicketDetailViewModel>();
+        services.AddTransient<StatisticsViewModel>();
+
+        return services.BuildServiceProvider();
+    }
+
+    protected override void OnLaunched(LaunchActivatedEventArgs e)
+    {
+        _window = new Window();
+        MainWindow = _window;
+
+        _window.Content = new ShellPage();
+        _window.Title = "LotteryTracker";
+        _window.Activate();
+
+        // Ensure database is created
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<LotteryTrackerDbContext>();
+        context.Database.EnsureCreated();
+
+        // Navigate to Dashboard
+        var navigationService = Services.GetRequiredService<INavigationService>();
+        navigationService.NavigateTo("Dashboard");
     }
 }

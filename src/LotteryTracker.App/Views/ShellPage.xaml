@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="LotteryTracker.App.Views.ShellPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LotteryTracker.App.Views">
+
+    <NavigationView
+        x:Name="NavView"
+        IsSettingsVisible="True"
+        PaneDisplayMode="Left"
+        IsBackButtonVisible="Auto"
+        BackRequested="NavView_BackRequested"
+        SelectionChanged="NavView_SelectionChanged">
+
+        <NavigationView.MenuItems>
+            <NavigationViewItem Icon="Home" Content="Dashboard" Tag="Dashboard"/>
+            <NavigationViewItem Icon="Add" Content="Add Ticket" Tag="AddTicket"/>
+            <NavigationViewItem Content="History" Tag="TicketHistory">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE81C;"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem Content="Statistics" Tag="Statistics">
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE9D2;"/>
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.MenuItems>
+
+        <Frame x:Name="ContentFrame"/>
+    </NavigationView>
+</Page>
