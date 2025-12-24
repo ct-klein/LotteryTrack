@@ -3,6 +3,7 @@ namespace LotteryTracker.App.Views;
 using LotteryTracker.App.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 
 public sealed partial class ShellPage : Page
@@ -35,10 +36,25 @@ public sealed partial class ShellPage : Page
 
     private void NavView_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
     {
+        GoBack();
+    }
+
+    private void OnEscapePressed(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        if (GoBack())
+        {
+            args.Handled = true;
+        }
+    }
+
+    private bool GoBack()
+    {
         if (_navigationService.CanGoBack)
         {
             _navigationService.GoBack();
+            return true;
         }
+        return false;
     }
 
     private void ContentFrame_Navigated(object sender, NavigationEventArgs e)

@@ -5,6 +5,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:LotteryTracker.App.Views">
 
+    <Page.KeyboardAccelerators>
+        <KeyboardAccelerator Key="Escape" Invoked="OnEscapePressed"/>
+    </Page.KeyboardAccelerators>
+
     <NavigationView
         x:Name="NavView"
         IsSettingsVisible="True"
