@@ -16,6 +16,9 @@ public partial class TicketDetailViewModel(
     [ObservableProperty]
     private decimal? _prizeAmount;
 
+    [ObservableProperty]
+    private double _prizeAmountValue;
+
     public async Task LoadTicketAsync(int ticketId)
     {
         IsLoading = true;
@@ -25,6 +28,7 @@ public partial class TicketDetailViewModel(
             if (Ticket != null)
             {
                 PrizeAmount = Ticket.PrizeAmount;
+                PrizeAmountValue = (double)(Ticket.PrizeAmount ?? 0);
             }
         }
         catch (Exception ex)
@@ -45,7 +49,7 @@ public partial class TicketDetailViewModel(
         try
         {
             Ticket.Status = TicketStatus.Winner;
-            Ticket.PrizeAmount = PrizeAmount;
+            Ticket.PrizeAmount = (decimal)PrizeAmountValue;
             await ticketRepository.UpdateTicketAsync(Ticket);
             OnPropertyChanged(nameof(Ticket));
         }

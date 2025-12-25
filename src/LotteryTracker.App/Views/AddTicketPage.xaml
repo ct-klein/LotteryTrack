@@ -4,7 +4,203 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Grid Padding="24">
-        <TextBlock Text="Add Ticket - Coming Soon" Style="{StaticResource TitleTextBlockStyle}"/>
+    <Grid>
+        <!-- Loading Overlay -->
+        <ProgressRing
+            x:Name="LoadingRing"
+            Width="48"
+            Height="48"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"/>
+
+        <ScrollViewer x:Name="ContentScroller" Padding="24">
+            <StackPanel Spacing="24" MaxWidth="600" HorizontalAlignment="Left">
+                <!-- Header -->
+                <TextBlock Text="Add New Ticket" Style="{StaticResource TitleTextBlockStyle}"/>
+
+                <!-- Error Message -->
+                <InfoBar
+                    x:Name="ErrorInfoBar"
+                    Severity="Error"
+                    Title="Error"
+                    IsOpen="False"
+                    IsClosable="True"/>
+
+                <!-- Ticket Type Selector -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Ticket Type" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                    <RadioButtons x:Name="TicketTypeSelector" SelectedIndex="0" SelectionChanged="TicketTypeSelector_SelectionChanged">
+                        <RadioButton Content="Scratch-Off" Tag="ScratchOff"/>
+                        <RadioButton Content="Draw Game" Tag="DrawGame"/>
+                    </RadioButtons>
+                </StackPanel>
+
+                <!-- Common Fields -->
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Purchase Details" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                    <!-- Serial Number with Scan Button -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox
+                            x:Name="SerialNumberBox"
+                            Header="Serial Number (Optional)"
+                            PlaceholderText="Scan or enter ticket serial number"
+                            TextChanged="SerialNumberBox_TextChanged"/>
+                        <Button
+                            x:Name="ScanBarcodeButton"
+                            Grid.Column="1"
+                            Margin="8,22,0,0"
+                            ToolTipService.ToolTip="Scan Barcode"
+                            Click="ScanBarcodeButton_Click">
+                            <FontIcon Glyph="&#xED1A;" FontSize="16"/>
+                        </Button>
+                    </Grid>
+
+                    <CalendarDatePicker
+                        x:Name="PurchaseDatePicker"
+                        Header="Purchase Date"
+                        DateChanged="PurchaseDatePicker_DateChanged"
+                        HorizontalAlignment="Stretch"/>
+
+                    <NumberBox
+                        x:Name="PriceBox"
+                        Header="Price"
+                        PlaceholderText="0.00"
+                        SpinButtonPlacementMode="Compact"
+                        SmallChange="1"
+                        LargeChange="5"
+                        Minimum="0"
+                        ValueChanged="PriceBox_ValueChanged"/>
+
+                    <TextBox
+                        x:Name="StoreNameBox"
+                        Header="Store Name (Optional)"
+                        PlaceholderText="Where was this ticket purchased?"
+                        TextChanged="StoreNameBox_TextChanged"/>
+
+                    <TextBox
+                        x:Name="StoreLocationBox"
+                        Header="Store Location (Optional)"
+                        PlaceholderText="City, State"
+                        TextChanged="StoreLocationBox_TextChanged"/>
+                </StackPanel>
+
+                <!-- Scratch-Off Specific Fields -->
+                <StackPanel x:Name="ScratchOffFields" Spacing="16" Visibility="Visible">
+                    <TextBlock Text="Scratch-Off Details" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                    <TextBox
+                        x:Name="GameNameBox"
+                        Header="Game Name"
+                        PlaceholderText="e.g., $500 Frenzy, Lucky 7s"
+                        TextChanged="GameNameBox_TextChanged"/>
+
+                    <TextBox
+                        x:Name="GameNumberBox"
+                        Header="Game Number (Optional)"
+                        PlaceholderText="State game identifier"
+                        TextChanged="GameNumberBox_TextChanged"/>
+
+                    <NumberBox
+                        x:Name="TicketNumberBox"
+                        Header="Ticket Number in Roll (Optional)"
+                        PlaceholderText="e.g., 001"
+                        SpinButtonPlacementMode="Compact"
+                        Minimum="0"
+                        ValueChanged="TicketNumberBox_ValueChanged"/>
+                </StackPanel>
+
+                <!-- Draw Game Specific Fields -->
+                <StackPanel x:Name="DrawGameFields" Spacing="16" Visibility="Collapsed">
+                    <TextBlock Text="Draw Game Details" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                    <ComboBox
+                        x:Name="GameTypeCombo"
+                        Header="Game Type"
+                        HorizontalAlignment="Stretch"
+                        SelectionChanged="GameTypeCombo_SelectionChanged">
+                        <ComboBoxItem Content="Powerball" Tag="Powerball"/>
+                        <ComboBoxItem Content="Mega Millions" Tag="MegaMillions"/>
+                        <ComboBoxItem Content="State Lottery" Tag="StateLottery"/>
+                        <ComboBoxItem Content="Pick 3" Tag="Pick3"/>
+                        <ComboBoxItem Content="Pick 4" Tag="Pick4"/>
+                        <ComboBoxItem Content="Cash 5" Tag="Cash5"/>
+                        <ComboBoxItem Content="Other" Tag="Other"/>
+                    </ComboBox>
+
+                    <TextBox
+                        x:Name="CustomGameNameField"
+                        Header="Custom Game Name"
+                        PlaceholderText="Enter game name"
+                        Visibility="Collapsed"
+                        TextChanged="CustomGameNameField_TextChanged"/>
+
+                    <TextBox
+                        x:Name="NumbersSelectedBox"
+                        Header="Numbers Selected"
+                        PlaceholderText="e.g., 5, 12, 23, 35, 48"
+                        TextChanged="NumbersSelectedBox_TextChanged"/>
+
+                    <TextBox
+                        x:Name="BonusNumbersBox"
+                        Header="Bonus Number (Optional)"
+                        PlaceholderText="e.g., Powerball: 7"
+                        TextChanged="BonusNumbersBox_TextChanged"/>
+
+                    <CalendarDatePicker
+                        x:Name="DrawDatePicker"
+                        Header="Draw Date"
+                        DateChanged="DrawDatePicker_DateChanged"
+                        HorizontalAlignment="Stretch"/>
+
+                    <CheckBox
+                        x:Name="QuickPickCheck"
+                        Content="Quick Pick (randomly generated numbers)"
+                        Checked="QuickPickCheck_Changed"
+                        Unchecked="QuickPickCheck_Changed"/>
+
+                    <NumberBox
+                        x:Name="NumberOfDrawsBox"
+                        Header="Number of Draws"
+                        Value="1"
+                        SpinButtonPlacementMode="Compact"
+                        Minimum="1"
+                        Maximum="26"
+                        SmallChange="1"
+                        ValueChanged="NumberOfDrawsBox_ValueChanged"/>
+                </StackPanel>
+
+                <!-- Notes -->
+                <TextBox
+                    x:Name="NotesBox"
+                    Header="Notes (Optional)"
+                    PlaceholderText="Any additional notes about this ticket"
+                    TextWrapping="Wrap"
+                    AcceptsReturn="True"
+                    Height="100"
+                    TextChanged="NotesBox_TextChanged"/>
+
+                <!-- Action Buttons -->
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
+                    <Button
+                        x:Name="SaveButton"
+                        Content="Save Ticket"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Click="SaveButton_Click">
+                        <Button.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="S" Modifiers="Control"/>
+                        </Button.KeyboardAccelerators>
+                    </Button>
+                    <Button
+                        x:Name="CancelButton"
+                        Content="Cancel"
+                        Click="CancelButton_Click"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Page>

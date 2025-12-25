@@ -5,6 +5,104 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid Padding="24">
-        <TextBlock Text="Ticket History - Coming Soon" Style="{StaticResource TitleTextBlockStyle}"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Text="Ticket History" Style="{StaticResource TitleTextBlockStyle}"/>
+
+        <!-- Filters -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="16" Margin="0,16,0,0">
+            <ComboBox x:Name="TicketTypeFilter" Header="Ticket Type" Width="150"
+                      PlaceholderText="All Types" SelectionChanged="TicketTypeFilter_SelectionChanged">
+                <ComboBoxItem Content="All Types" Tag=""/>
+                <ComboBoxItem Content="Scratch-Off" Tag="ScratchOff"/>
+                <ComboBoxItem Content="Draw Game" Tag="DrawGame"/>
+            </ComboBox>
+
+            <ComboBox x:Name="StatusFilter" Header="Status" Width="140"
+                      PlaceholderText="All" SelectionChanged="StatusFilter_SelectionChanged">
+                <ComboBoxItem Content="All" Tag=""/>
+                <ComboBoxItem Content="Pending" Tag="Pending"/>
+                <ComboBoxItem Content="Winner" Tag="Winner"/>
+                <ComboBoxItem Content="No Win" Tag="Loser"/>
+                <ComboBoxItem Content="Claimed" Tag="Claimed"/>
+            </ComboBox>
+
+            <CalendarDatePicker x:Name="StartDatePicker" Header="From Date" DateChanged="DateFilter_Changed"/>
+            <CalendarDatePicker x:Name="EndDatePicker" Header="To Date" DateChanged="DateFilter_Changed"/>
+
+            <Button VerticalAlignment="Bottom" Click="ClearFilters_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE711;" FontSize="12"/>
+                    <TextBlock Text="Clear Filters"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+
+        <!-- Empty State -->
+        <StackPanel x:Name="EmptyStatePanel" Grid.Row="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Spacing="16" Visibility="Collapsed">
+            <FontIcon Glyph="&#xE81C;" FontSize="64" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <TextBlock Text="No tickets found" Style="{StaticResource SubtitleTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+        </StackPanel>
+
+        <!-- Ticket List -->
+        <ListView x:Name="TicketListView" Grid.Row="2"
+                  IsItemClickEnabled="True" ItemClick="TicketList_ItemClick"
+                  SelectionMode="None" Margin="0,16,0,0"
+                  ContainerContentChanging="TicketListView_ContainerContentChanging">
+
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="8,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Width="48" Height="48" CornerRadius="8"
+                                Background="{ThemeResource AccentFillColorDefaultBrush}">
+                            <FontIcon x:Name="TicketIcon" FontSize="20" Foreground="White"/>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4" Margin="16,0">
+                            <TextBlock x:Name="TicketNameText" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock x:Name="PurchaseDateText"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Style="{StaticResource CaptionTextBlockStyle}"/>
+                                <TextBlock Text="•" x:Name="StoreSeparator"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                <TextBlock x:Name="StoreNameText"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Style="{StaticResource CaptionTextBlockStyle}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock x:Name="PriceText" Grid.Column="2" VerticalAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+
+                        <Border x:Name="StatusBadge" Grid.Column="3" VerticalAlignment="Center" CornerRadius="4"
+                                Padding="8,4" Margin="16,0">
+                            <TextBlock x:Name="StatusText" Foreground="White" FontSize="12"/>
+                        </Border>
+
+                        <TextBlock x:Name="PrizeText" Grid.Column="4" VerticalAlignment="Center"
+                                   Width="80" TextAlignment="Right"
+                                   Style="{StaticResource BodyStrongTextBlockStyle}"
+                                   Foreground="Green"/>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </Page>

@@ -2,31 +2,19 @@
 <Page
     x:Class="LotteryTracker.App.Views.DashboardPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:LotteryTracker.App.Controls"
-    xmlns:converters="using:LotteryTracker.App.Converters"
-    xmlns:entities="using:LotteryTracker.Core.Entities">
-
-    <Page.Resources>
-        <converters:CurrencyConverter x:Key="CurrencyConverter"/>
-        <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
-        <converters:StatusToStringConverter x:Key="StatusToStringConverter"/>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-    </Page.Resources>
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
         <!-- Loading Overlay -->
         <ProgressRing
-            IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-            Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+            x:Name="LoadingRing"
             Width="48"
             Height="48"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"/>
 
         <!-- Main Content -->
-        <ScrollViewer
-            Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
+        <ScrollViewer x:Name="MainContent">
             <StackPanel Padding="24" Spacing="24">
                 <!-- Header -->
                 <Grid>
@@ -34,10 +22,11 @@
                         Text="Dashboard"
                         Style="{StaticResource TitleTextBlockStyle}"/>
                     <Button
+                        x:Name="AddTicketButton"
                         Content="Add Ticket"
                         HorizontalAlignment="Right"
                         Style="{StaticResource AccentButtonStyle}"
-                        Command="{x:Bind ViewModel.AddNewTicketCommand}">
+                        Click="AddTicketButton_Click">
                         <Button.KeyboardAccelerators>
                             <KeyboardAccelerator Key="N" Modifiers="Control"/>
                         </Button.KeyboardAccelerators>
@@ -51,39 +40,83 @@
                         Style="{StaticResource SubtitleTextBlockStyle}"/>
 
                     <StackPanel Orientation="Horizontal" Spacing="16">
-                        <controls:StatCard
-                            Title="Total Spent"
-                            Value="{x:Bind FormatCurrency(ViewModel.OverallStats.TotalSpent), Mode=OneWay}"
-                            Subtitle="{x:Bind FormatTicketCount(ViewModel.OverallStats.TotalTickets), Mode=OneWay}"/>
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="16" MinWidth="150">
+                            <StackPanel>
+                                <TextBlock Text="Total Spent" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="TotalSpentText" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                                <TextBlock x:Name="TotalTicketsText" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Border>
 
-                        <controls:StatCard
-                            Title="Total Won"
-                            Value="{x:Bind FormatCurrency(ViewModel.OverallStats.TotalWon), Mode=OneWay}"/>
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="16" MinWidth="150">
+                            <StackPanel>
+                                <TextBlock Text="Total Won" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="TotalWonText" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                            </StackPanel>
+                        </Border>
 
-                        <controls:StatCard
-                            Title="Net Profit/Loss"
-                            Value="{x:Bind FormatCurrency(ViewModel.OverallStats.NetProfit), Mode=OneWay}"/>
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="16" MinWidth="150">
+                            <StackPanel>
+                                <TextBlock Text="Net Profit/Loss" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="NetProfitText" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                            </StackPanel>
+                        </Border>
 
-                        <controls:StatCard
-                            Title="Win Rate"
-                            Value="{x:Bind FormatPercent(ViewModel.OverallStats.WinRate), Mode=OneWay}"
-                            Subtitle="{x:Bind FormatWinCount(ViewModel.OverallStats.WinningTickets), Mode=OneWay}"/>
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="16" MinWidth="150">
+                            <StackPanel>
+                                <TextBlock Text="Win Rate" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="WinRateText" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                                <TextBlock x:Name="WinCountText" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </StackPanel>
 
                 <!-- Quick Stats Row -->
                 <StackPanel Orientation="Horizontal" Spacing="16">
-                    <controls:StatCard
-                        Title="Pending"
-                        Value="{x:Bind ViewModel.OverallStats.PendingTickets.ToString(), Mode=OneWay, FallbackValue='0'}"/>
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1" CornerRadius="8" Padding="16" MinWidth="120">
+                        <StackPanel>
+                            <TextBlock Text="Pending" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            <TextBlock x:Name="PendingCountText" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
 
-                    <controls:StatCard
-                        Title="Winners"
-                        Value="{x:Bind ViewModel.OverallStats.WinningTickets.ToString(), Mode=OneWay, FallbackValue='0'}"/>
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1" CornerRadius="8" Padding="16" MinWidth="120">
+                        <StackPanel>
+                            <TextBlock Text="Winners" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            <TextBlock x:Name="WinnersCountText" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
 
-                    <controls:StatCard
-                        Title="No Wins"
-                        Value="{x:Bind ViewModel.OverallStats.LosingTickets.ToString(), Mode=OneWay, FallbackValue='0'}"/>
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1" CornerRadius="8" Padding="16" MinWidth="120">
+                        <StackPanel>
+                            <TextBlock Text="No Wins" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            <TextBlock x:Name="LosersCountText" Style="{StaticResource SubtitleTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <!-- Recent Tickets -->
@@ -93,9 +126,10 @@
                             Text="Recent Tickets"
                             Style="{StaticResource SubtitleTextBlockStyle}"/>
                         <HyperlinkButton
+                            x:Name="ViewAllButton"
                             Content="View All"
                             HorizontalAlignment="Right"
-                            Command="{x:Bind ViewModel.ViewAllTicketsCommand}"/>
+                            Click="ViewAllButton_Click"/>
                     </Grid>
 
                     <!-- Empty State -->
@@ -123,19 +157,19 @@
                                 Style="{StaticResource AccentButtonStyle}"
                                 HorizontalAlignment="Center"
                                 Margin="0,8,0,0"
-                                Command="{x:Bind ViewModel.AddNewTicketCommand}"/>
+                                Click="AddTicketButton_Click"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Ticket List -->
                     <ListView
                         x:Name="TicketListView"
-                        ItemsSource="{x:Bind ViewModel.RecentTickets, Mode=OneWay}"
                         SelectionMode="None"
                         IsItemClickEnabled="True"
-                        ItemClick="TicketList_ItemClick">
+                        ItemClick="TicketList_ItemClick"
+                        ContainerContentChanging="TicketListView_ContainerContentChanging">
                         <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="entities:Ticket">
+                            <DataTemplate>
                                 <Grid
                                     Padding="12"
                                     Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -150,36 +184,35 @@
 
                                     <!-- Status Indicator -->
                                     <Ellipse
+                                        x:Name="StatusIndicator"
                                         Grid.Column="0"
                                         Width="12"
                                         Height="12"
-                                        Fill="{x:Bind Status, Converter={StaticResource StatusToColorConverter}}"
                                         Margin="0,0,12,0"
                                         VerticalAlignment="Center"/>
 
                                     <!-- Ticket Info -->
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                         <TextBlock
-                                            Text="{x:Bind PurchaseDate.ToString('MMM dd, yyyy', x:Null)}"
+                                            x:Name="PurchaseDateText"
                                             Style="{StaticResource BodyStrongTextBlockStyle}"/>
                                         <TextBlock
-                                            Text="{x:Bind StoreName}"
+                                            x:Name="StoreNameText"
                                             Style="{StaticResource CaptionTextBlockStyle}"
                                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                     </StackPanel>
 
                                     <!-- Status -->
                                     <TextBlock
+                                        x:Name="StatusText"
                                         Grid.Column="2"
-                                        Text="{x:Bind Status, Converter={StaticResource StatusToStringConverter}}"
                                         VerticalAlignment="Center"
-                                        Margin="12,0"
-                                        Foreground="{x:Bind Status, Converter={StaticResource StatusToColorConverter}}"/>
+                                        Margin="12,0"/>
 
                                     <!-- Price -->
                                     <TextBlock
+                                        x:Name="PriceText"
                                         Grid.Column="3"
-                                        Text="{x:Bind Price, Converter={StaticResource CurrencyConverter}}"
                                         Style="{StaticResource BodyStrongTextBlockStyle}"
                                         VerticalAlignment="Center"/>
                                 </Grid>
@@ -195,21 +228,21 @@
                         Style="{StaticResource SubtitleTextBlockStyle}"/>
 
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Command="{x:Bind ViewModel.AddNewTicketCommand}">
+                        <Button Click="AddTicketButton_Click">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE710;" FontSize="16"/>
                                 <TextBlock Text="Add Scratch-Off"/>
                             </StackPanel>
                         </Button>
 
-                        <Button Command="{x:Bind ViewModel.AddNewTicketCommand}">
+                        <Button Click="AddTicketButton_Click">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE710;" FontSize="16"/>
                                 <TextBlock Text="Add Draw Game"/>
                             </StackPanel>
                         </Button>
 
-                        <Button Command="{x:Bind ViewModel.ViewStatisticsCommand}">
+                        <Button Click="ViewStatisticsButton_Click">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE9D2;" FontSize="16"/>
                                 <TextBlock Text="View Statistics"/>

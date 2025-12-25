@@ -17,10 +17,10 @@ public partial class AddTicketViewModel(
     private string? _serialNumber;
 
     [ObservableProperty]
-    private DateTime _purchaseDate = DateTime.Today;
+    private DateTimeOffset _purchaseDate = DateTimeOffset.Now;
 
     [ObservableProperty]
-    private decimal _price;
+    private double _price;
 
     [ObservableProperty]
     private string? _storeName;
@@ -39,11 +39,11 @@ public partial class AddTicketViewModel(
     private string? _gameNumber;
 
     [ObservableProperty]
-    private int? _ticketNumber;
+    private double _ticketNumberValue = double.NaN;
 
     // Draw game specific
     [ObservableProperty]
-    private DrawGameType _selectedGameType = DrawGameType.Powerball;
+    private int _selectedGameTypeIndex;
 
     [ObservableProperty]
     private string? _customGameName;
@@ -55,18 +55,30 @@ public partial class AddTicketViewModel(
     private string? _bonusNumbers;
 
     [ObservableProperty]
-    private DateTime _drawDate = DateTime.Today;
+    private DateTimeOffset _drawDate = DateTimeOffset.Now;
 
     [ObservableProperty]
     private bool _isQuickPick;
 
     [ObservableProperty]
-    private int _numberOfDraws = 1;
+    private double _numberOfDraws = 1;
+
+    private DrawGameType GetGameTypeFromIndex(int index) => index switch
+    {
+        0 => DrawGameType.Powerball,
+        1 => DrawGameType.MegaMillions,
+        2 => DrawGameType.StateLottery,
+        3 => DrawGameType.Pick3,
+        4 => DrawGameType.Pick4,
+        5 => DrawGameType.Cash5,
+        6 => DrawGameType.Other,
+        _ => DrawGameType.Powerball
+    };
 
     [RelayCommand]
     private async Task ScanBarcodeAsync()
     {
-        // TODO: Implement barcode scanning
+        // TODO: Implement barcode scanning in Phase 8
         await Task.CompletedTask;
     }
 
@@ -76,36 +88,50 @@ public partial class AddTicketViewModel(
         try
         {
             IsLoading = true;
+            ErrorMessage = null;
+
+            // Validation
+            if (Price <= 0)
+            {
+                ErrorMessage = "Please enter a valid price.";
+                return;
+            }
+
+            if (SelectedTicketType == TicketType.ScratchOff && string.IsNullOrWhiteSpace(GameName))
+            {
+                ErrorMessage = "Please enter a game name for the scratch-off ticket.";
+                return;
+            }
 
             Ticket ticket = SelectedTicketType switch
             {
                 TicketType.ScratchOff => new ScratchOffTicket
                 {
                     SerialNumber = SerialNumber,
-                    PurchaseDate = PurchaseDate,
-                    Price = Price,
+                    PurchaseDate = PurchaseDate.DateTime,
+                    Price = (decimal)Price,
                     StoreName = StoreName,
                     StoreLocation = StoreLocation,
                     Notes = Notes,
                     GameName = GameName ?? string.Empty,
                     GameNumber = GameNumber,
-                    TicketNumber = TicketNumber
+                    TicketNumber = double.IsNaN(TicketNumberValue) ? null : (int)TicketNumberValue
                 },
                 TicketType.DrawGame => new DrawGameTicket
                 {
                     SerialNumber = SerialNumber,
-                    PurchaseDate = PurchaseDate,
-                    Price = Price,
+                    PurchaseDate = PurchaseDate.DateTime,
+                    Price = (decimal)Price,
                     StoreName = StoreName,
                     StoreLocation = StoreLocation,
                     Notes = Notes,
-                    GameType = SelectedGameType,
+                    GameType = GetGameTypeFromIndex(SelectedGameTypeIndex),
                     CustomGameName = CustomGameName,
                     NumbersSelected = NumbersSelected ?? string.Empty,
                     BonusNumbers = BonusNumbers,
-                    DrawDate = DrawDate,
+                    DrawDate = DrawDate.DateTime,
                     IsQuickPick = IsQuickPick,
-                    NumberOfDraws = NumberOfDraws
+                    NumberOfDraws = (int)NumberOfDraws
                 },
                 _ => throw new InvalidOperationException("Invalid ticket type")
             };
