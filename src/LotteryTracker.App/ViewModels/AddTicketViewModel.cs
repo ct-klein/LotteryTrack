@@ -8,7 +8,8 @@ using LotteryTracker.Core.Interfaces;
 
 public partial class AddTicketViewModel(
     ITicketRepository ticketRepository,
-    INavigationService navigationService) : BaseViewModel
+    INavigationService navigationService,
+    IBarcodeService barcodeService) : BaseViewModel
 {
     [ObservableProperty]
     private TicketType _selectedTicketType = TicketType.ScratchOff;
@@ -78,8 +79,18 @@ public partial class AddTicketViewModel(
     [RelayCommand]
     private async Task ScanBarcodeAsync()
     {
-        // TODO: Implement barcode scanning in Phase 8
-        await Task.CompletedTask;
+        try
+        {
+            var barcode = await barcodeService.ScanBarcodeAsync();
+            if (!string.IsNullOrEmpty(barcode))
+            {
+                SerialNumber = barcode;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Barcode scan failed: {ex.Message}";
+        }
     }
 
     [RelayCommand]

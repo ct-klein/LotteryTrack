@@ -58,6 +58,9 @@ public partial class App : Application
         services.AddTransient<TicketDetailViewModel>();
         services.AddTransient<StatisticsViewModel>();
 
+        // Barcode Service (registered after MainWindow is created)
+        services.AddTransient<IBarcodeService>(sp => new BarcodeService(MainWindow));
+
         return services.BuildServiceProvider();
     }
 
