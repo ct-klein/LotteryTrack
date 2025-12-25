@@ -24,6 +24,7 @@ bld/
 TestStore/
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
+nul*.*
 
 # MSTest
 [Dd]ebugPublic/
@@ -124,3 +125,10 @@ nCrunchTemp_*
 
 # Crash logs
 crash_*.json
+
+# MSBuild logs
+*.binlog
+build_output.txt
+build2.txt
+output_check.txt
+nul
