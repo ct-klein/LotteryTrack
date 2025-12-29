@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
@@ -8,21 +8,21 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="6487d8d5-8dc6-4065-9216-88acd8966273"
-    Publisher="CN=User Name"
+    Name="LotteryTracker"
+    Publisher="CN=LotteryTracker"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="6487d8d5-8dc6-4065-9216-88acd8966273" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>LotteryTracker.App</DisplayName>
-    <PublisherDisplayName>User Name</PublisherDisplayName>
+    <DisplayName>LotteryTracker</DisplayName>
+    <PublisherDisplayName>LotteryTracker</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
   <Dependencies>
-    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
-    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0" />
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0" />
   </Dependencies>
 
   <Resources>
@@ -34,8 +34,8 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="LotteryTracker.App"
-        Description="LotteryTracker.App"
+        DisplayName="LotteryTracker"
+        Description="Track your lottery tickets, results, and statistics"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
@@ -47,5 +47,6 @@
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
+    <DeviceCapability Name="webcam" />
   </Capabilities>
 </Package>
