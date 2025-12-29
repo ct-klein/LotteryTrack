@@ -5,14 +5,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
-        <!-- Loading Overlay -->
-        <ProgressRing
-            x:Name="LoadingRing"
-            Width="48"
-            Height="48"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"/>
-
         <ScrollViewer x:Name="ContentScroller" Padding="24">
             <StackPanel Spacing="24" MaxWidth="600" HorizontalAlignment="Left">
                 <!-- Header -->

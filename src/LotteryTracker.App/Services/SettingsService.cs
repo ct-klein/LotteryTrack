@@ -1,16 +1,31 @@
 namespace LotteryTracker.App.Services;
 
+using System.Text.Json;
 using Windows.Devices.Enumeration;
-using Windows.Storage;
 
 public class SettingsService : ISettingsService
 {
-    private const string SelectedCameraIdKey = "SelectedCameraId";
+    private readonly string _settingsFilePath;
+    private AppSettings _settings;
+
+    public SettingsService()
+    {
+        var appDataPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "LotteryTracker");
+        Directory.CreateDirectory(appDataPath);
+        _settingsFilePath = Path.Combine(appDataPath, "settings.json");
+        _settings = LoadSettings();
+    }
 
     public string? SelectedCameraId
     {
-        get => ApplicationData.Current.LocalSettings.Values[SelectedCameraIdKey] as string;
-        set => ApplicationData.Current.LocalSettings.Values[SelectedCameraIdKey] = value;
+        get => _settings.SelectedCameraId;
+        set
+        {
+            _settings.SelectedCameraId = value;
+            SaveSettings();
+        }
     }
 
     public async Task<IReadOnlyList<CameraInfo>> GetAvailableCamerasAsync()
@@ -33,5 +48,40 @@ public class SettingsService : ISettingsService
         }
 
         return cameras;
+    }
+
+    private AppSettings LoadSettings()
+    {
+        try
+        {
+            if (File.Exists(_settingsFilePath))
+            {
+                var json = File.ReadAllText(_settingsFilePath);
+                return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+            }
+        }
+        catch
+        {
+            // Return default settings if file can't be read
+        }
+        return new AppSettings();
+    }
+
+    private void SaveSettings()
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(_settings, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_settingsFilePath, json);
+        }
+        catch
+        {
+            // Ignore save errors
+        }
+    }
+
+    private class AppSettings
+    {
+        public string? SelectedCameraId { get; set; }
     }
 }

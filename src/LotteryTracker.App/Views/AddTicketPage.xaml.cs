@@ -35,13 +35,7 @@ public sealed partial class AddTicketPage : Page
 
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ViewModel.IsLoading))
-        {
-            LoadingRing.IsActive = ViewModel.IsLoading;
-            LoadingRing.Visibility = ViewModel.IsLoading ? Visibility.Visible : Visibility.Collapsed;
-            ContentScroller.Visibility = ViewModel.IsLoading ? Visibility.Collapsed : Visibility.Visible;
-        }
-        else if (e.PropertyName == nameof(ViewModel.ErrorMessage))
+        if (e.PropertyName == nameof(ViewModel.ErrorMessage))
         {
             ErrorInfoBar.Message = ViewModel.ErrorMessage ?? "";
             ErrorInfoBar.IsOpen = !string.IsNullOrEmpty(ViewModel.ErrorMessage);
