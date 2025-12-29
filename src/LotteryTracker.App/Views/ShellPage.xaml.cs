@@ -24,7 +24,7 @@ public sealed partial class ShellPage : Page
     {
         if (args.IsSettingsSelected)
         {
-            // Navigate to settings if implemented
+            _navigationService.NavigateTo("Settings");
             return;
         }
 
@@ -86,6 +86,7 @@ public sealed partial class ShellPage : Page
             "TicketHistory" => typeof(TicketHistoryPage),
             "TicketDetail" => typeof(TicketDetailPage),
             "Statistics" => typeof(StatisticsPage),
+            "Settings" => typeof(SettingsPage),
             _ => null
         };
     }

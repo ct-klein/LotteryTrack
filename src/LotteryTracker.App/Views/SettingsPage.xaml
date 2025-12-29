@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="LotteryTracker.App.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,24">
+            <Button x:Name="BackButton" Style="{StaticResource AccentButtonStyle}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE72B;" FontSize="16"/>
+                    <TextBlock Text="Back"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="24" MaxWidth="600" HorizontalAlignment="Left">
+
+                <!-- Camera Settings Section -->
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Camera Settings" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="8"
+                            Padding="16">
+                        <StackPanel Spacing="16">
+
+                            <!-- Camera Selection -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Barcode Scanner Camera" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                                <TextBlock Text="Select the camera to use for barcode scanning"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap"/>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <ComboBox x:Name="CameraComboBox"
+                                              Grid.Column="0"
+                                              HorizontalAlignment="Stretch"
+                                              PlaceholderText="Select a camera..."
+                                              DisplayMemberPath="Name"/>
+
+                                    <Button x:Name="RefreshButton"
+                                            Grid.Column="1"
+                                            Margin="8,0,0,0"
+                                            ToolTipService.ToolTip="Refresh camera list">
+                                        <FontIcon Glyph="&#xE72C;" FontSize="16"/>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Loading Indicator -->
+                            <StackPanel x:Name="LoadingPanel"
+                                        Orientation="Horizontal"
+                                        Spacing="12"
+                                        Visibility="Collapsed">
+                                <ProgressRing IsActive="True" Width="20" Height="20"/>
+                                <TextBlock Text="Detecting cameras..." VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- No Cameras Warning -->
+                            <InfoBar x:Name="NoCamerasInfoBar"
+                                     IsOpen="False"
+                                     Severity="Warning"
+                                     Title="No Cameras Found"
+                                     Message="No cameras were detected on this device. Make sure your camera is connected and drivers are installed."
+                                     IsClosable="False"/>
+
+                            <!-- Status Message -->
+                            <TextBlock x:Name="StatusText"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       FontStyle="Italic"/>
+
+                            <!-- Error Message -->
+                            <InfoBar x:Name="ErrorInfoBar"
+                                     IsOpen="False"
+                                     Severity="Error"
+                                     Title="Error"
+                                     IsClosable="True"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- About Section -->
+                <StackPanel Spacing="16">
+                    <TextBlock Text="About" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="8"
+                            Padding="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="LotteryTracker" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                            <TextBlock Text="Version 1.0.0"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            <TextBlock Text="Track your lottery tickets, results, and statistics."
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

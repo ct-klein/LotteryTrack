@@ -3,7 +3,6 @@ namespace LotteryTracker.App.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Media.Capture;
-using Windows.Media.Capture.Frames;
 using Windows.Media.MediaProperties;
 using Windows.Graphics.Imaging;
 using ZXing;
@@ -13,15 +12,18 @@ using System.Runtime.InteropServices.WindowsRuntime;
 public class BarcodeService : IBarcodeService
 {
     private readonly Window _mainWindow;
+    private readonly ISettingsService _settingsService;
 
-    public BarcodeService(Window mainWindow)
+    public BarcodeService(Window mainWindow, ISettingsService settingsService)
     {
         _mainWindow = mainWindow;
+        _settingsService = settingsService;
     }
 
     public async Task<string?> ScanBarcodeAsync()
     {
-        var dialog = new BarcodeScannerDialog();
+        var selectedCameraId = _settingsService.SelectedCameraId;
+        var dialog = new BarcodeScannerDialog(selectedCameraId);
         dialog.XamlRoot = _mainWindow.Content.XamlRoot;
 
         var result = await dialog.ShowAsync();
@@ -37,15 +39,18 @@ public class BarcodeService : IBarcodeService
 
 public sealed partial class BarcodeScannerDialog : ContentDialog
 {
+    private readonly string? _selectedCameraId;
     private MediaCapture? _mediaCapture;
-    private MediaFrameReader? _frameReader;
     private BarcodeReaderGeneric? _barcodeReader;
     private bool _isScanning;
+    private CancellationTokenSource? _scanCancellation;
 
     public string? ScannedBarcode { get; private set; }
 
-    public BarcodeScannerDialog()
+    public BarcodeScannerDialog(string? selectedCameraId = null)
     {
+        _selectedCameraId = selectedCameraId;
+
         Title = "Scan Barcode";
         PrimaryButtonText = "Cancel";
         DefaultButton = ContentDialogButton.Primary;
@@ -171,45 +176,42 @@ public sealed partial class BarcodeScannerDialog : ContentDialog
                 }
             };
 
-            // Find camera
-            var frameSourceGroups = await MediaFrameSourceGroup.FindAllAsync();
-            var sourceGroup = frameSourceGroups.FirstOrDefault(g =>
-                g.SourceInfos.Any(s => s.SourceKind == MediaFrameSourceKind.Color));
-
-            if (sourceGroup == null)
-            {
-                ShowCameraError("No camera found on this device.");
-                return;
-            }
-
+            // Initialize MediaCapture with settings
             _mediaCapture = new MediaCapture();
             var settings = new MediaCaptureInitializationSettings
             {
-                SourceGroup = sourceGroup,
-                SharingMode = MediaCaptureSharingMode.SharedReadOnly,
                 StreamingCaptureMode = StreamingCaptureMode.Video,
-                MemoryPreference = MediaCaptureMemoryPreference.Cpu
+                MediaCategory = MediaCategory.Other,
+                PhotoCaptureSource = PhotoCaptureSource.Auto
             };
+
+            // Use selected camera if specified
+            if (!string.IsNullOrEmpty(_selectedCameraId))
+            {
+                settings.VideoDeviceId = _selectedCameraId;
+            }
 
             await _mediaCapture.InitializeAsync(settings);
 
-            var colorSourceInfo = sourceGroup.SourceInfos
-                .FirstOrDefault(s => s.SourceKind == MediaFrameSourceKind.Color);
+            _isScanning = true;
+            _scanCancellation = new CancellationTokenSource();
 
-            if (colorSourceInfo == null)
+            // Update UI to show scanning state with camera name if available
+            var cameraName = "camera";
+            if (_mediaCapture.MediaCaptureSettings.VideoDeviceId != null)
             {
-                ShowCameraError("No color camera source found.");
-                return;
+                try
+                {
+                    var device = await Windows.Devices.Enumeration.DeviceInformation.CreateFromIdAsync(
+                        _mediaCapture.MediaCaptureSettings.VideoDeviceId);
+                    cameraName = device.Name;
+                }
+                catch
+                {
+                    // Ignore errors getting camera name
+                }
             }
 
-            var colorSource = _mediaCapture.FrameSources[colorSourceInfo.Id];
-            _frameReader = await _mediaCapture.CreateFrameReaderAsync(colorSource, MediaEncodingSubtypes.Bgra8);
-            _frameReader.FrameArrived += FrameReader_FrameArrived;
-
-            await _frameReader.StartAsync();
-            _isScanning = true;
-
-            // Update UI to show scanning state
             _previewBorder.Child = new StackPanel
             {
                 VerticalAlignment = VerticalAlignment.Center,
@@ -229,9 +231,19 @@ public sealed partial class BarcodeScannerDialog : ContentDialog
                         Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.White),
                         HorizontalAlignment = HorizontalAlignment.Center
                     },
+                    new TextBlock
+                    {
+                        Text = $"Using: {cameraName}",
+                        Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        FontSize = 12
+                    },
                     new ProgressRing { IsActive = true, Width = 32, Height = 32 }
                 }
             };
+
+            // Start scanning loop
+            _ = ScanLoopAsync(_scanCancellation.Token);
         }
         catch (UnauthorizedAccessException)
         {
@@ -239,7 +251,84 @@ public sealed partial class BarcodeScannerDialog : ContentDialog
         }
         catch (Exception ex)
         {
-            ShowCameraError($"Camera error: {ex.Message}");
+            ShowCameraError($"Camera error: {ex.Message}\n\nTip: Go to Settings to select a different camera.");
+        }
+    }
+
+    private async Task ScanLoopAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Prepare low-lag photo capture with uncompressed format for direct SoftwareBitmap access
+            var imageProperties = ImageEncodingProperties.CreateUncompressed(MediaPixelFormat.Bgra8);
+            var lowLagCapture = await _mediaCapture!.PrepareLowLagPhotoCaptureAsync(imageProperties);
+
+            while (_isScanning && !cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    var capturedPhoto = await lowLagCapture.CaptureAsync();
+                    var softwareBitmap = capturedPhoto.Frame.SoftwareBitmap;
+
+                    if (softwareBitmap != null)
+                    {
+                        // Convert to BGRA8 if needed
+                        if (softwareBitmap.BitmapPixelFormat != BitmapPixelFormat.Bgra8)
+                        {
+                            softwareBitmap = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+                        }
+
+                        var width = softwareBitmap.PixelWidth;
+                        var height = softwareBitmap.PixelHeight;
+                        var buffer = new byte[width * height * 4];
+                        softwareBitmap.CopyToBuffer(buffer.AsBuffer());
+                        softwareBitmap.Dispose();
+
+                        // Try to decode barcode
+                        var luminanceSource = new RGBLuminanceSource(buffer, width, height, RGBLuminanceSource.BitmapFormat.BGRA32);
+                        var result = _barcodeReader!.Decode(luminanceSource);
+
+                        if (result != null && !string.IsNullOrEmpty(result.Text))
+                        {
+                            _isScanning = false;
+                            ScannedBarcode = result.Text;
+
+                            await lowLagCapture.FinishAsync();
+
+                            // Close dialog on UI thread
+                            DispatcherQueue.TryEnqueue(() =>
+                            {
+                                Hide();
+                            });
+                            return;
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch
+                {
+                    // Ignore individual frame errors, continue scanning
+                }
+
+                // Small delay between captures
+                await Task.Delay(200, cancellationToken);
+            }
+
+            await lowLagCapture.FinishAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            // Normal cancellation, ignore
+        }
+        catch (Exception ex)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                ShowCameraError($"Scanning error: {ex.Message}");
+            });
         }
     }
 
@@ -277,59 +366,12 @@ public sealed partial class BarcodeScannerDialog : ContentDialog
         };
     }
 
-    private void FrameReader_FrameArrived(MediaFrameReader sender, MediaFrameArrivedEventArgs args)
-    {
-        if (!_isScanning || _barcodeReader == null)
-            return;
-
-        using var frameReference = sender.TryAcquireLatestFrame();
-        if (frameReference?.VideoMediaFrame?.SoftwareBitmap == null)
-            return;
-
-        try
-        {
-            using var bitmap = SoftwareBitmap.Convert(
-                frameReference.VideoMediaFrame.SoftwareBitmap,
-                BitmapPixelFormat.Bgra8,
-                BitmapAlphaMode.Premultiplied);
-
-            var width = bitmap.PixelWidth;
-            var height = bitmap.PixelHeight;
-            var buffer = new byte[width * height * 4];
-            bitmap.CopyToBuffer(buffer.AsBuffer());
-
-            // Create luminance source from BGRA data
-            var luminanceSource = new RGBLuminanceSource(buffer, width, height, RGBLuminanceSource.BitmapFormat.BGRA32);
-            var result = _barcodeReader.Decode(luminanceSource);
-
-            if (result != null && !string.IsNullOrEmpty(result.Text))
-            {
-                _isScanning = false;
-                ScannedBarcode = result.Text;
-
-                // Close dialog on UI thread
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    Hide();
-                });
-            }
-        }
-        catch
-        {
-            // Ignore decoding errors, continue scanning
-        }
-    }
-
     private void StopScanning()
     {
         _isScanning = false;
-
-        if (_frameReader != null)
-        {
-            _frameReader.FrameArrived -= FrameReader_FrameArrived;
-            _frameReader.Dispose();
-            _frameReader = null;
-        }
+        _scanCancellation?.Cancel();
+        _scanCancellation?.Dispose();
+        _scanCancellation = null;
 
         if (_mediaCapture != null)
         {

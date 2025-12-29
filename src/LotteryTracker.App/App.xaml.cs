@@ -41,6 +41,9 @@ public partial class App : Application
         services.AddScoped<ITicketRepository, TicketRepository>();
         services.AddScoped<IStatisticsService, StatisticsService>();
 
+        // Settings Service
+        services.AddSingleton<ISettingsService, SettingsService>();
+
         // Navigation Service
         var navigationService = new NavigationService();
         navigationService.RegisterPage("Dashboard", typeof(DashboardPage));
@@ -48,6 +51,7 @@ public partial class App : Application
         navigationService.RegisterPage("TicketHistory", typeof(TicketHistoryPage));
         navigationService.RegisterPage("TicketDetail", typeof(TicketDetailPage));
         navigationService.RegisterPage("Statistics", typeof(StatisticsPage));
+        navigationService.RegisterPage("Settings", typeof(SettingsPage));
         services.AddSingleton<INavigationService>(navigationService);
 
         // ViewModels
@@ -57,9 +61,11 @@ public partial class App : Application
         services.AddTransient<TicketHistoryViewModel>();
         services.AddTransient<TicketDetailViewModel>();
         services.AddTransient<StatisticsViewModel>();
+        services.AddTransient<SettingsViewModel>();
 
-        // Barcode Service (registered after MainWindow is created)
-        services.AddTransient<IBarcodeService>(sp => new BarcodeService(MainWindow));
+        // Barcode Service (registered after MainWindow is created, uses settings for camera selection)
+        services.AddTransient<IBarcodeService>(sp =>
+            new BarcodeService(MainWindow, sp.GetRequiredService<ISettingsService>()));
 
         return services.BuildServiceProvider();
     }
