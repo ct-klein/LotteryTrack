@@ -8,6 +8,7 @@
         <!-- WinUI 3 -->
         <UseWinUI>true</UseWinUI>
         <EnableMsixTooling>true</EnableMsixTooling>
+        <WindowsPackageType>None</WindowsPackageType>
 
         <!-- MSIX Packaging -->
         <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
