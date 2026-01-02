@@ -97,6 +97,40 @@
                     </Border>
                 </StackPanel>
 
+                <!-- Diagnostics Section -->
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Diagnostics" Style="{StaticResource SubtitleTextBlockStyle}"/>
+
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            CornerRadius="8"
+                            Padding="16">
+                        <StackPanel Spacing="16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="Enable Logging" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                                    <TextBlock Text="Log application events and errors to a file for troubleshooting. Changes require app restart."
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+
+                                <ToggleSwitch x:Name="LoggingToggle"
+                                              Grid.Column="1"
+                                              VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <TextBlock Text="Log files are stored in: %LocalAppData%\LotteryTracker\logs\"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       FontSize="12"
+                                       IsTextSelectionEnabled="True"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
                 <!-- About Section -->
                 <StackPanel Spacing="16">
                     <TextBlock Text="About" Style="{StaticResource SubtitleTextBlockStyle}"/>

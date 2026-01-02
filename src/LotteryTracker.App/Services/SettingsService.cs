@@ -28,6 +28,16 @@ public class SettingsService : ISettingsService
         }
     }
 
+    public bool IsLoggingEnabled
+    {
+        get => _settings.IsLoggingEnabled;
+        set
+        {
+            _settings.IsLoggingEnabled = value;
+            SaveSettings();
+        }
+    }
+
     public async Task<IReadOnlyList<CameraInfo>> GetAvailableCamerasAsync()
     {
         var cameras = new List<CameraInfo>();
@@ -83,5 +93,6 @@ public class SettingsService : ISettingsService
     private class AppSettings
     {
         public string? SelectedCameraId { get; set; }
+        public bool IsLoggingEnabled { get; set; } = true;
     }
 }

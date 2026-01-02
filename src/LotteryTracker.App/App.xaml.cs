@@ -1,5 +1,6 @@
 namespace LotteryTracker.App;
 
+using System.Text.Json;
 using LotteryTracker.App.Services;
 using LotteryTracker.App.ViewModels;
 using LotteryTracker.App.Views;
@@ -12,13 +13,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Serilog;
+using Serilog.Events;
 
 public partial class App : Application
 {
     private Window? _window;
-    private static readonly string LogDirectory = Path.Combine(
+    private static readonly string AppDataDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "LotteryTracker", "logs");
+        "LotteryTracker");
+    private static readonly string LogDirectory = Path.Combine(AppDataDirectory, "logs");
+    private static readonly string SettingsFilePath = Path.Combine(AppDataDirectory, "settings.json");
 
     public static IServiceProvider Services { get; private set; } = null!;
     public static Window MainWindow { get; private set; } = null!;
@@ -41,16 +45,49 @@ public partial class App : Application
 
     private static void ConfigureLogging()
     {
-        Directory.CreateDirectory(LogDirectory);
+        var isLoggingEnabled = IsLoggingEnabledFromSettings();
 
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.File(
-                path: Path.Combine(LogDirectory, "lottery-.log"),
-                rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 30,
-                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
-            .CreateLogger();
+        if (isLoggingEnabled)
+        {
+            Directory.CreateDirectory(LogDirectory);
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File(
+                    path: Path.Combine(LogDirectory, "lottery-.log"),
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 30,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+                .CreateLogger();
+        }
+        else
+        {
+            // Create a logger that discards all messages
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Override("*", LogEventLevel.Fatal)
+                .CreateLogger();
+        }
+    }
+
+    private static bool IsLoggingEnabledFromSettings()
+    {
+        try
+        {
+            if (File.Exists(SettingsFilePath))
+            {
+                var json = File.ReadAllText(SettingsFilePath);
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("IsLoggingEnabled", out var prop))
+                {
+                    return prop.GetBoolean();
+                }
+            }
+        }
+        catch
+        {
+            // If we can't read settings, default to enabled
+        }
+        return true; // Default to enabled
     }
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)

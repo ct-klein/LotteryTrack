@@ -21,6 +21,20 @@ public partial class SettingsViewModel(
     [ObservableProperty]
     private string? _statusMessage;
 
+    [ObservableProperty]
+    private bool _isLoggingEnabled;
+
+    private bool _isInitializing;
+
+    public async Task LoadSettingsAsync()
+    {
+        _isInitializing = true;
+        IsLoggingEnabled = settingsService.IsLoggingEnabled;
+        _isInitializing = false;
+
+        await LoadCamerasAsync();
+    }
+
     public async Task LoadCamerasAsync()
     {
         try
@@ -68,6 +82,15 @@ public partial class SettingsViewModel(
         {
             settingsService.SelectedCameraId = value.Id;
             StatusMessage = $"Camera saved: {value.Name}";
+        }
+    }
+
+    partial void OnIsLoggingEnabledChanged(bool value)
+    {
+        if (!_isInitializing)
+        {
+            settingsService.IsLoggingEnabled = value;
+            StatusMessage = value ? "Logging enabled (restart required)" : "Logging disabled (restart required)";
         }
     }
 

@@ -19,26 +19,27 @@ public sealed partial class SettingsPage : Page
         BackButton.Click += BackButton_Click;
         RefreshButton.Click += RefreshButton_Click;
         CameraComboBox.SelectionChanged += CameraComboBox_SelectionChanged;
+        LoggingToggle.Toggled += LoggingToggle_Toggled;
 
         Loaded += SettingsPage_Loaded;
     }
 
     private async void SettingsPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await LoadCamerasAsync();
+        await LoadSettingsAsync();
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-        await LoadCamerasAsync();
+        await LoadSettingsAsync();
     }
 
-    private async Task LoadCamerasAsync()
+    private async Task LoadSettingsAsync()
     {
         UpdateLoadingState(true);
 
-        await ViewModel.LoadCamerasAsync();
+        await ViewModel.LoadSettingsAsync();
 
         UpdateLoadingState(false);
         UpdateUI();
@@ -56,6 +57,9 @@ public sealed partial class SettingsPage : Page
         // Update camera combo box
         CameraComboBox.ItemsSource = ViewModel.AvailableCameras;
         CameraComboBox.SelectedItem = ViewModel.SelectedCamera;
+
+        // Update logging toggle
+        LoggingToggle.IsOn = ViewModel.IsLoggingEnabled;
 
         // Update status
         NoCamerasInfoBar.IsOpen = ViewModel.NoCamerasFound;
@@ -80,7 +84,10 @@ public sealed partial class SettingsPage : Page
 
     private async void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
-        await LoadCamerasAsync();
+        UpdateLoadingState(true);
+        await ViewModel.LoadCamerasAsync();
+        UpdateLoadingState(false);
+        UpdateUI();
     }
 
     private void CameraComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -90,5 +97,11 @@ public sealed partial class SettingsPage : Page
             ViewModel.SelectedCamera = camera;
             StatusText.Text = ViewModel.StatusMessage ?? string.Empty;
         }
+    }
+
+    private void LoggingToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        ViewModel.IsLoggingEnabled = LoggingToggle.IsOn;
+        StatusText.Text = ViewModel.StatusMessage ?? string.Empty;
     }
 }
