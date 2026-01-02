@@ -23,24 +23,56 @@ public partial class App : Application
         "LotteryTracker");
     private static readonly string LogDirectory = Path.Combine(AppDataDirectory, "logs");
     private static readonly string SettingsFilePath = Path.Combine(AppDataDirectory, "settings.json");
+    private static readonly string StartupLogPath = Path.Combine(AppDataDirectory, "startup.log");
 
     public static IServiceProvider Services { get; private set; } = null!;
     public static Window MainWindow { get; private set; } = null!;
 
     public App()
     {
-        // Configure Serilog before anything else
-        ConfigureLogging();
+        try
+        {
+            WriteStartupLog("App constructor starting...");
 
-        // Subscribe to unhandled exception events
-        this.UnhandledException += App_UnhandledException;
-        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+            // Configure Serilog before anything else
+            ConfigureLogging();
+            WriteStartupLog("Serilog configured");
 
-        this.InitializeComponent();
-        Services = ConfigureServices();
+            // Subscribe to unhandled exception events
+            this.UnhandledException += App_UnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+            WriteStartupLog("Exception handlers registered");
 
-        Log.Information("Application started");
+            WriteStartupLog("Calling InitializeComponent...");
+            this.InitializeComponent();
+            WriteStartupLog("InitializeComponent completed");
+
+            WriteStartupLog("Calling ConfigureServices...");
+            Services = ConfigureServices();
+            WriteStartupLog("ConfigureServices completed");
+
+            Log.Information("Application started");
+            WriteStartupLog("App constructor completed successfully");
+        }
+        catch (Exception ex)
+        {
+            WriteStartupLog($"FATAL ERROR in App constructor: {ex}");
+            throw;
+        }
+    }
+
+    private static void WriteStartupLog(string message)
+    {
+        try
+        {
+            Directory.CreateDirectory(AppDataDirectory);
+            File.AppendAllText(StartupLogPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}{Environment.NewLine}");
+        }
+        catch
+        {
+            // Ignore logging failures
+        }
     }
 
     private static void ConfigureLogging()
@@ -165,27 +197,48 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs e)
     {
-        Log.Debug("OnLaunched starting");
+        try
+        {
+            WriteStartupLog("OnLaunched starting...");
+            Log.Debug("OnLaunched starting");
 
-        _window = new Window();
-        MainWindow = _window;
-        _window.Closed += Window_Closed;
+            WriteStartupLog("Creating Window...");
+            _window = new Window();
+            MainWindow = _window;
+            _window.Closed += Window_Closed;
+            WriteStartupLog("Window created");
 
-        _window.Content = new ShellPage();
-        _window.Title = "LotteryTracker";
-        _window.Activate();
+            WriteStartupLog("Creating ShellPage...");
+            _window.Content = new ShellPage();
+            WriteStartupLog("ShellPage created");
 
-        // Ensure database is created
-        Log.Debug("Initializing database");
-        using var scope = Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<LotteryTrackerDbContext>();
-        context.Database.EnsureCreated();
-        Log.Information("Database initialized at {DbPath}", context.Database.GetDbConnection().DataSource);
+            _window.Title = "LotteryTracker";
+            WriteStartupLog("Activating window...");
+            _window.Activate();
+            WriteStartupLog("Window activated");
 
-        // Navigate to Dashboard
-        var navigationService = Services.GetRequiredService<INavigationService>();
-        navigationService.NavigateTo("Dashboard");
-        Log.Debug("Navigation to Dashboard complete");
+            // Ensure database is created
+            WriteStartupLog("Initializing database...");
+            Log.Debug("Initializing database");
+            using var scope = Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<LotteryTrackerDbContext>();
+            context.Database.EnsureCreated();
+            Log.Information("Database initialized at {DbPath}", context.Database.GetDbConnection().DataSource);
+            WriteStartupLog($"Database initialized at {context.Database.GetDbConnection().DataSource}");
+
+            // Navigate to Dashboard
+            WriteStartupLog("Navigating to Dashboard...");
+            var navigationService = Services.GetRequiredService<INavigationService>();
+            navigationService.NavigateTo("Dashboard");
+            Log.Debug("Navigation to Dashboard complete");
+            WriteStartupLog("Navigation to Dashboard complete - startup finished");
+        }
+        catch (Exception ex)
+        {
+            WriteStartupLog($"FATAL ERROR in OnLaunched: {ex}");
+            Log.Fatal(ex, "Fatal error in OnLaunched");
+            throw;
+        }
     }
 
     private static void Window_Closed(object sender, WindowEventArgs args)
