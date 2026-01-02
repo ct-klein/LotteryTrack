@@ -8,7 +8,8 @@
         <!-- WinUI 3 -->
         <UseWinUI>true</UseWinUI>
         <EnableMsixTooling>true</EnableMsixTooling>
-        <WindowsPackageType>None</WindowsPackageType>
+        <!-- Run unpackaged in Debug, use MSIX packaging in Release -->
+        <WindowsPackageType Condition="'$(Configuration)' == 'Debug'">None</WindowsPackageType>
 
         <!-- MSIX Packaging -->
         <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
