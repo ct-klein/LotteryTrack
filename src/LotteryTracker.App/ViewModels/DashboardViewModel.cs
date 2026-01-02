@@ -6,12 +6,14 @@ using LotteryTracker.App.Services;
 using LotteryTracker.Core.Entities;
 using LotteryTracker.Core.Interfaces;
 using LotteryTracker.Core.Models;
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 
 public partial class DashboardViewModel(
     IStatisticsService statisticsService,
     ITicketRepository ticketRepository,
-    INavigationService navigationService) : BaseViewModel
+    INavigationService navigationService,
+    ILogger<DashboardViewModel> logger) : BaseViewModel
 {
     [ObservableProperty]
     private TicketStatistics? _overallStats;
@@ -21,15 +23,18 @@ public partial class DashboardViewModel(
 
     public override async Task InitializeAsync()
     {
+        logger.LogDebug("Initializing dashboard");
         IsLoading = true;
         try
         {
             OverallStats = await statisticsService.GetOverallStatisticsAsync();
             var tickets = await ticketRepository.GetAllTicketsAsync();
             RecentTickets = new ObservableCollection<Ticket>(tickets.Take(5));
+            logger.LogInformation("Dashboard loaded with {TicketCount} recent tickets", RecentTickets.Count);
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Failed to load dashboard data");
             ErrorMessage = ex.Message;
         }
         finally
